@@ -2,7 +2,8 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.core.paginator import Paginator
 from django.conf import settings
 from django.db.models import Count
-from .models import BlogType, Blog, ReadNum
+from read_statistics.utils import read_statistics_once_read
+from .models import BlogType, Blog
 
 
 def get_blog_list_common_data(request, blogs_all_list):
@@ -73,16 +74,7 @@ def blogs_with_date(request, year, month):
 
 def blog_detail(request, blog_pk):
     blog = get_object_or_404(Blog, pk=blog_pk)
-    if not request.COOKIES.get('blog_%s_num' % blog_pk):
-        if ReadNum.objects.filter(blog=blog).count():
-            # exist record
-            readnum = ReadNum.objects.get(blog=blog)
-        else:
-            # not exist record
-            readnum = ReadNum(blog=blog)
-        # 计数加1
-        readnum.read_num += 1
-        readnum.save()
+    read_cookie_key = read_statistics_once_read(request, blog)
 
     # 获取日期归档统计数量:
     blog_dates = Blog.objects.dates('created_time', 'month', order='DESC')
@@ -98,5 +90,5 @@ def blog_detail(request, blog_pk):
                'previous_blog': Blog.objects.filter(created_time__gt=blog.created_time).last(),
                'next_blog': Blog.objects.filter(created_time__lt=blog.created_time).first()}
     response = render_to_response('blog/blog_detail.html', context)
-    response.set_cookie('blog_%s_num' % blog_pk, 'True')
+    response.set_cookie(read_cookie_key, 'True')
     return response

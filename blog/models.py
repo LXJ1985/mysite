@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-from ckeditor.fields import RichTextField
+from ckeditor_uploader.fields import RichTextUploadingField
+from read_statistics.models import ReadNumExpandMethod
 
 
 # Create BlogType and Blog models below.
@@ -14,27 +15,18 @@ class BlogType(models.Model):
         return self.type_name
 
 
-class Blog(models.Model):
+class Blog(models.Model, ReadNumExpandMethod):
     title = models.CharField(max_length=30)
     blog_type = models.ForeignKey(BlogType, on_delete=models.DO_NOTHING)
     # content = models.TextField()
-    content = RichTextField()   # 富文本
+    content = RichTextUploadingField()   # 富文本
     author = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     created_time = models.DateTimeField(auto_now_add=True)
     last_time = models.DateTimeField(auto_now=True)
-
-    def read_num(self):
-        # 返回BLOG阅读数量
-        return self.readnum.read_num
 
     def __str__(self):
         return "<Blog: %s>" % self.title
 
     class Meta:
         ordering = ['-created_time']
-
-
-class ReadNum(models.Model):
-    read_num = models.IntegerField(default=0)
-    blog = models.OneToOneField(Blog, on_delete=models.DO_NOTHING)
 

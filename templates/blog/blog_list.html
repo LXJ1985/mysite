@@ -31,13 +31,7 @@
                                     </li>
                                     <li>作者：{{ blog.author }}</li>
                                     <li><span class="glyphicon glyphicon-time"></span>发表日期：{{ blog.created_time }}</li>
-                                    <li>阅读(
-                                        {% if blog.read_num %}
-                                            {{ blog.read_num }}
-                                        {% else %}
-                                            0
-                                        {% endif %}
-                                        )</li>
+                                    <li>阅读({{ blog.get_blog_read_num }})</li>
                                 </ul>
                                 <div class="roundup">
                                     <p>{{ blog.content|safe|truncatechars_html:60 }}</p>

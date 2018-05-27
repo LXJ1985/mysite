@@ -6,11 +6,17 @@
 
 from django.shortcuts import render_to_response
 from django.db.models import Count
+from django.contrib.contenttypes.models import ContentType
+from read_statistics.utils import get_seven_days_read_data
 from blog.models import BlogType, Blog
 
 
 def home(request):
-    context = {}
+    context_type = ContentType.objects.get_for_model(Blog)
+    read_nums = get_seven_days_read_data(context_type)
+
+    context = {'read_nums': read_nums,
+               }
     return render_to_response('home.html', context)
 
 
