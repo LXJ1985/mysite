@@ -4,18 +4,65 @@
 # @Author: Administrator
 # @File: views.py
 
+import datetime
 from django.shortcuts import render_to_response
 from django.db.models import Count
+from django.utils import timezone
+from django.db.models import Sum
+from django.core.cache import cache
 from django.contrib.contenttypes.models import ContentType
-from read_statistics.utils import get_seven_days_read_data
+from read_statistics.utils import get_seven_days_read_data,  \
+                                  get_today_hot_data,        \
+                                  get_yesterday_hot_data
 from blog.models import BlogType, Blog
+
+
+def get_seven_days_hot_data():
+    today = timezone.now().date()
+    one_week_before = today - datetime.timedelta(days=6)
+    seven_hot_blogs = Blog.objects    \
+                          .filter(read_details__date__lte=today, read_details__date__gte=one_week_before)  \
+                          .values('id', 'title')   \
+                          .annotate(read_num_sum=Sum('read_details__read_num'))   \
+                          .order_by('-read_num_sum')
+    return seven_hot_blogs[:7]
+
+
+def get_30_days_hot_data():
+    today = timezone.now().date()
+    one_month_before = today - datetime.timedelta(days=29)
+    one_month_blogs = Blog.objects  \
+                             .filter(read_details__date__lte=today, read_details__date__gte=one_month_before) \
+                             .values('id', 'title') \
+                             .annotate(read_num_sum=Sum('read_details__read_num')) \
+                             .order_by('-read_num_sum')
+    return one_month_blogs[:7]
 
 
 def home(request):
     context_type = ContentType.objects.get_for_model(Blog)
-    read_nums = get_seven_days_read_data(context_type)
+    dates, read_nums = get_seven_days_read_data(context_type)
+    today_hot_data = get_today_hot_data(context_type)
+    yesterday_hot_data = get_yesterday_hot_data(context_type)
+
+    # 获取七天内的缓存数据
+    seven_hot_blogs = cache.get('seven_hot_blogs')
+    if seven_hot_blogs is None:
+        seven_hot_blogs = get_seven_days_hot_data()
+        cache.set('seven_hot_blogs', seven_hot_blogs, 3600)
+
+    # 获取30天内的缓存数据
+    one_month_blogs = cache.get('one_month_blogs')
+    if one_month_blogs is None:
+        one_month_blogs = get_30_days_hot_data()
+        cache.set('one_month_blogs', one_month_blogs, 3600)
 
     context = {'read_nums': read_nums,
+               'dates': dates,
+               'today_hot_data': today_hot_data,
+               'yesterday_hot_data': yesterday_hot_data,
+               'seven_hot_blogs': seven_hot_blogs,
+               'one_month_blogs': one_month_blogs,
                }
     return render_to_response('home.html', context)
 

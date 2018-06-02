@@ -17,13 +17,69 @@
 {% block content %}
     <h3 class="home-content">欢迎访问我的网站，随便浏览！</h3>
     <!-- 图表容器 DOM -->
-    <div id="container" class="charts" style="width: 600px;height:400px;"></div>
+    <div id="container"></div>
+    <div class="hot-data">
+        <h3 class="hot-data-title">今日热门博客</h3>
+        <ul class="hot-hit">
+            {% for hot_data in today_hot_data %}
+                <li>
+                    <a href="{% url 'blog_detail' hot_data.content_object.pk %}">{{ hot_data.content_object.title }}
+                    </a>({{ hot_data.read_num }})
+                </li>
+            {% empty %}
+                <li>今天暂时没有热门博客</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="hot-data">
+        <h3 class="hot-data-title">昨日热门博客</h3>
+        <ul class="hot-hit">
+            {% for hot_data in yesterday_hot_data %}
+                <li>
+                    <a href="{% url 'blog_detail' hot_data.content_object.pk %}">{{ hot_data.content_object.title }}
+                    </a>({{ hot_data.read_num }})
+                </li>
+            {% empty %}
+                <li>昨天没有热门博客</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="hot-data">
+        <h3 class="hot-data-title">七天热门博客</h3>
+        <ul class="hot-hit">
+            {% for hot_blog in seven_hot_blogs %}
+                <li>
+                    <a href="{% url 'blog_detail' hot_blog.id %}">{{ hot_blog.title }}
+                    </a>({{ hot_blog.read_num_sum }})
+                </li>
+            {% empty %}
+                <li>最近七没有热门博客</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="hot-data">
+        <h3 class="hot-data-title">一月热门博客</h3>
+        <ul class="hot-hit">
+            {% for hot_blog in one_month_blogs %}
+                <li>
+                    <a href="{% url 'blog_detail' hot_blog.id %}">{{ hot_blog.title }}
+                    </a>({{ hot_blog.read_num_sum }})
+                </li>
+            {% empty %}
+                <li>这一个月没有热门博客</li>
+            {% endfor %}
+        </ul>
+    </div>
     <script>
         // 图表配置
         var options = {
             chart: { type: 'line' },                    //指定图表的类型，默认是折线图（line）
             title: { text: '最近七天博客浏览量统计' },     // 标题
-            xAxis: { categories: ['1', '2', '3', '4', '5', '6', '7'] },  // x 轴分类
+            xAxis: {
+                categories: {{ dates|safe }},           // x 轴分类
+                tickmarkPlacement: 'on',
+                title: { text: '前七天博客阅读量'}
+            },
             yAxis: {
                 title: { text: null  },                 // y 轴标题
                 labels: { enabled: false},
@@ -33,6 +89,13 @@
                 name: '阅读量',                          // 数据列名
                 data: {{ read_nums }}                   // 数据
             }],
+            plotOptions:{
+                line: {
+                    dataLabels: {
+                        enable: true
+                    }
+                }
+            },
             legend: { enabled: false},
             credits: { enabled: false},
         };
