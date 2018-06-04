@@ -29,3 +29,8 @@ div.blog-content{
 div.blog-more{
   margin-top: 1em;
 }
+div.comment-area{
+  margin-top: 2em;
+  border: 1px dashed;
+  padding: 2em;
+}

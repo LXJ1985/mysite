@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{# 页面标题 #}
+{% block title %}
+    我的网站|错误：登陆失败
+{% endblock %}
+
+{% block nav_home_active %}active{% endblock %}
+
+{% block header_home_extends %}
+    <link rel="stylesheet" href="{% static 'error.css' %}">
+{% endblock %}
+
+{# 页面内容 #}
+{% block content %}
+    <h3 class="error-content">{{ message }}</h3>
+{% endblock %}
+

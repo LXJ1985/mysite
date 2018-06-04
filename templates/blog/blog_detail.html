@@ -90,5 +90,24 @@
             </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-8 col-md-9 col-lg-10">
+                <div class="comment-area">
+                    提交评论区域
+                    {% if user.is_authenticated %}
+                        已登陆
+                    {% else %}
+                        未登陆
+                        <form action="{% url 'login' %}" method="POST">
+                            {% csrf_token %}
+                            <input type="text" name="username">
+                            <input type="password" name="password">
+                            <input type="submit" value="登陆">
+                        </form>
+                    {% endif %}
+                </div>
+                <div class="comment-area">评论列表区域</div>
+            </div>
+        </div>
     </div>
 {% endblock %}

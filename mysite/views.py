@@ -5,11 +5,12 @@
 # @File: views.py
 
 import datetime
-from django.shortcuts import render_to_response
+from django.shortcuts import render, redirect
 from django.db.models import Count
 from django.utils import timezone
 from django.db.models import Sum
 from django.core.cache import cache
+from django.contrib import auth
 from django.contrib.contenttypes.models import ContentType
 from read_statistics.utils import get_seven_days_read_data,  \
                                   get_today_hot_data,        \
@@ -31,12 +32,24 @@ def get_seven_days_hot_data():
 def get_30_days_hot_data():
     today = timezone.now().date()
     one_month_before = today - datetime.timedelta(days=29)
-    one_month_blogs = Blog.objects  \
+    one_month_blogs = Blog.objects \
                              .filter(read_details__date__lte=today, read_details__date__gte=one_month_before) \
                              .values('id', 'title') \
                              .annotate(read_num_sum=Sum('read_details__read_num')) \
                              .order_by('-read_num_sum')
     return one_month_blogs[:7]
+
+
+def login(request):
+    username = request.POST.get('username', '')
+    password = request.POST.get('password', '')
+    user = auth.authenticate(request, username=username, password=password)
+    if user is not None:
+        auth.login(request, user)
+        # Redirect to a home page.
+        return redirect('/')
+    else:
+        return render(request, 'error.html', {'message': '用户名或密码不正确！'})
 
 
 def home(request):
@@ -64,7 +77,7 @@ def home(request):
                'seven_hot_blogs': seven_hot_blogs,
                'one_month_blogs': one_month_blogs,
                }
-    return render_to_response('home.html', context)
+    return render(request, 'home.html', context)
 
 
 def about(request):
@@ -78,7 +91,7 @@ def about(request):
     # 获取博客分类统计数量 方法一： annotate()
     context = {'blog_types': BlogType.objects.annotate(blog_count=Count('blog')),
                'blog_dates': blog_dates_dict}
-    return render_to_response('about.html', context)
+    return render(request,'about.html', context)
 
 
 
