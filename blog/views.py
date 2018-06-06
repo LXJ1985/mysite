@@ -2,7 +2,9 @@ from django.shortcuts import get_object_or_404, render
 from django.core.paginator import Paginator
 from django.conf import settings
 from django.db.models import Count
+from django.contrib.contenttypes.models import ContentType
 from read_statistics.utils import read_statistics_once_read
+from comment.models import Comment
 from .models import BlogType, Blog
 
 
@@ -61,7 +63,7 @@ def blogs_with_type(request, blog_type_pk):
     blogs_all_list = Blog.objects.filter(blog_type=blog_type)
     context = get_blog_list_common_data(request, blogs_all_list)
     context['blog_type'] = blog_type
-    return render(request,'blog/blogs_with_type.html', context)
+    return render(request, 'blog/blogs_with_type.html', context)
 
 
 def blogs_with_date(request, year, month):
@@ -71,9 +73,13 @@ def blogs_with_date(request, year, month):
     context['blogs_with_date'] = blog_with_date
     return render(request,'blog/blogs_with_date.html', context)
 
+
 def blog_detail(request, blog_pk):
     blog = get_object_or_404(Blog, pk=blog_pk)
     read_cookie_key = read_statistics_once_read(request, blog)
+    blog_content_type = ContentType.objects.get_for_model(blog)
+    comments = Comment.objects.filter(content_type=blog_content_type,
+                                      object_id=blog.pk)
 
     # 获取日期归档统计数量:
     blog_dates = Blog.objects.dates('created_time', 'month', order='DESC')
@@ -86,6 +92,7 @@ def blog_detail(request, blog_pk):
                'blogs_all_list': Blog.objects.all(),
                'blog_types': BlogType.objects.annotate(blog_count=Count('blog')),
                'blog_dates': blog_dates_dict,
+               'comments': comments,
                'previous_blog': Blog.objects.filter(created_time__gt=blog.created_time).last(),
                'next_blog': Blog.objects.filter(created_time__lt=blog.created_time).first()}
     response = render(request, 'blog/blog_detail.html', context)

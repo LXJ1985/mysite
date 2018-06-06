@@ -93,20 +93,49 @@
         <div class="row">
             <div class="col-xs-12 col-sm-8 col-md-9 col-lg-10">
                 <div class="comment-area">
-                    提交评论区域
+                    <h4 class="comment-area-title">提交评论</h4>
                     {% if user.is_authenticated %}
-                        已登陆
+                        <form action="{% url 'update_comment' %}" method="POST" style="overflow:hidden">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="comment_text">{{ user.username }}, 欢迎评论~</label>
+                                <textarea class="form-control" name="text" id="comment_text" rows="'4"></textarea>
+                            </div>
+                            <input type="hidden" name="object_id" value="{{ blog.pk }}">
+                            <input type="hidden" name="content_type" value="blog">
+                            <input type="submit" value="评论" class="btn btn-primary" style="float:right">
+                        </form>
                     {% else %}
-                        未登陆
+                        未登录, 登录之后方可评论
                         <form action="{% url 'login' %}" method="POST">
                             {% csrf_token %}
+                            <span>用户名：</span>
                             <input type="text" name="username">
+                            <SPAN>密码：</SPAN>
                             <input type="password" name="password">
                             <input type="submit" value="登陆">
                         </form>
                     {% endif %}
                 </div>
-                <div class="comment-area">评论列表区域</div>
+                <div class="comment-area">
+                    <h4 class="comment-area-title">评论列表</h4>
+                    <div class="list-group">
+                        {% for comment in comments %}
+                            <div class="list-group-item">
+                                <h4 class="list-group-item-heading">
+                                    {{ comment.user.username }}
+                                    ({{ comment.comment_time|date:"Y-m-d H:m:s" }}):
+                                </h4>
+                                <p class="list-group-item-text">{{ comment.text }}</p>
+                            </div>
+                        {% empty %}
+                            暂无评论
+                        {% endfor %}
+                    </div>
+                    <div class="comment-end">
+                        <hr>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

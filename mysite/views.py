@@ -11,6 +11,7 @@ from django.utils import timezone
 from django.db.models import Sum
 from django.core.cache import cache
 from django.contrib import auth
+from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from read_statistics.utils import get_seven_days_read_data,  \
                                   get_today_hot_data,        \
@@ -44,10 +45,11 @@ def login(request):
     username = request.POST.get('username', '')
     password = request.POST.get('password', '')
     user = auth.authenticate(request, username=username, password=password)
+    referer = request.META.get('HTTP_REFERER', reverse('home'))
     if user is not None:
         auth.login(request, user)
         # Redirect to a home page.
-        return redirect('/')
+        return redirect(referer)
     else:
         return render(request, 'error.html', {'message': '用户名或密码不正确！'})
 

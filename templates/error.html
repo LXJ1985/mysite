@@ -14,6 +14,8 @@
 
 {# 页面内容 #}
 {% block content %}
-    <h3 class="error-content">{{ message }}</h3>
+    <h3 class="error-content">
+        {{ message }} <a href="{{ redirect_to }}">返回</a>
+    </h3>
 {% endblock %}
 
